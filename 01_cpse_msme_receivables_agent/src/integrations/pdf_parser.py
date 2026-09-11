@@ -54,3 +54,5 @@ class InvoicePDFParser:
 
 
 pdf_parser = InvoicePDFParser()
+InvoicePDFExtractor = InvoicePDFParser
+InvoicePDFParser.extract_from_text = InvoicePDFParser.parse_raw_text

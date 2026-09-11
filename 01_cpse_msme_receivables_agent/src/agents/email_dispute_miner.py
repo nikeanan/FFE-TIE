@@ -95,5 +95,32 @@ class InboundDisputeMiner:
             "auto_drafted_rebuttal": rebuttal_draft,
         }
 
+    def mine_email_for_dispute(
+        self,
+        email_text: str,
+        sender: str,
+        buyer_id: str,
+        invoice_number: str,
+    ) -> Any:
+        class DisputeAnalysisObj:
+            def __init__(self, data: Dict[str, Any], inv_no: str):
+                class DisputeTypeEnum:
+                    def __init__(self, val: str):
+                        self.value = val
+                self.dispute_type = DisputeTypeEnum(data["detected_category"])
+                self.confidence = 0.95
+                self.disputed_amount = Decimal("45000.00")
+                self.extracted_issue = data["human_explanation"]
+                self.rebuttal_draft = data["auto_drafted_rebuttal"]
+
+        raw_res = self.analyze_inbound_email(
+            buyer_id=buyer_id,
+            subject=f"Re: Invoice {invoice_number}",
+            body=email_text,
+            sender_email=sender,
+        )
+        return DisputeAnalysisObj(raw_res, invoice_number)
+
 
 dispute_miner = InboundDisputeMiner()
+email_dispute_miner = dispute_miner

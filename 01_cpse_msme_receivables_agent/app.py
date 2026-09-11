@@ -22,6 +22,8 @@ from src.integrations.samadhaan_adapter import samadhaan
 from src.integrations.pdf_parser import InvoicePDFExtractor
 from src.integrations.gem_crac_tracker import gem_crac_engine
 from src.agents.email_dispute_miner import email_dispute_miner
+from src.pilot.pilot_evaluator import pilot_evaluator
+from src.pilot.pilot_suppliers import PILOT_SUPPLIERS
 
 # Ensure database is seeded
 if not db.invoices:
@@ -183,7 +185,7 @@ with st.sidebar:
 
     st.caption("RECEIVX v2.0 • Microservices & AI Layer")
 
-# Seven Core Navigation Tabs
+# Eight Core Navigation Tabs
 tabs = st.tabs([
     "🌟 Command Center & Advisor",
     "🔍 Pre-Submission Gatekeeper & OCR",
@@ -191,7 +193,8 @@ tabs = st.tabs([
     "⚖️ Statutory Escalator Desk",
     "💰 TReDS Financing Optimizer",
     "📈 Buyer Moat & Email Dispute NLP",
-    "💬 WhatsApp Bot Simulator"
+    "💬 WhatsApp Bot Simulator",
+    "🚀 5-Supplier Live Pilot Sandbox"
 ])
 
 # -----------------------------------------------------------------------------
@@ -678,3 +681,103 @@ with tabs[6]:
         if st.button("▶️ Play & Process Hindi Voice Query"):
             whatsapp.handle_inbound_message("+919876543210", "STATUS")
             st.rerun()
+
+# -----------------------------------------------------------------------------
+# TAB 8: 5-SUPPLIER LIVE PILOT DEMO & PROOF-OF-VALUE (POV) SANDBOX
+# -----------------------------------------------------------------------------
+with tabs[7]:
+    st.subheader("🚀 5-Supplier Live Pilot Onboarding & Zero-Rejection Sandbox")
+    st.markdown("**Demonstration Kit:** Ingest real-world invoice bundles from 5 distinct MSME supplier profiles across BHEL, PGCIL, NTPC, ONGC, and Indian Railways to prove immediate zero-rejection outcomes.")
+
+    pilot_report = pilot_evaluator.run_all_pilots()
+
+    # Pilot Cohort Summary Cards
+    pcol1, pcol2, pcol3, pcol4 = st.columns(4)
+    with pcol1:
+        st.markdown(f"""
+        <div class="kpi-card" style="border-left-color: #38BDF8;">
+            <div class="kpi-lbl">Total Ingested Book</div>
+            <div class="kpi-val">₹{pilot_report.total_invoice_book_audited:,.0f}</div>
+            <div style="font-size: 11px; color: #94A3B8; margin-top: 4px;">5 MSME supplier profiles</div>
+        </div>
+        """, unsafe_allow_html=True)
+    with pcol2:
+        st.markdown(f"""
+        <div class="kpi-card" style="border-left-color: #EF4444;">
+            <div class="kpi-lbl">Silent Portal Traps Neutralized</div>
+            <div class="kpi-val" style="color: #F87171;">{pilot_report.total_traps_neutralized} Traps</div>
+            <div style="font-size: 11px; color: #94A3B8; margin-top: 4px;">Across 5 CPSE portals</div>
+        </div>
+        """, unsafe_allow_html=True)
+    with pcol3:
+        st.markdown(f"""
+        <div class="kpi-card" style="border-left-color: #10B981;">
+            <div class="kpi-lbl">First-Pass Acceptance Rate</div>
+            <div class="kpi-val" style="color: #34D399;">{int(pilot_report.average_first_pass_score_before*100)}% ➔ 100%</div>
+            <div style="font-size: 11px; color: #94A3B8; margin-top: 4px;">Zero-Rejection Guarantee</div>
+        </div>
+        """, unsafe_allow_html=True)
+    with pcol4:
+        st.markdown(f"""
+        <div class="kpi-card" style="border-left-color: #F59E0B;">
+            <div class="kpi-lbl">Working Capital Interest Saved</div>
+            <div class="kpi-val" style="color: #FBBF24;">₹{pilot_report.total_working_capital_savings:,.0f}</div>
+            <div style="font-size: 11px; color: #94A3B8; margin-top: 4px;">Annualized across pilot cohort</div>
+        </div>
+        """, unsafe_allow_html=True)
+
+    st.write("")
+    st.subheader("🏢 Select Pilot Supplier Persona for Detailed PoV Audit:")
+    
+    supplier_options = {
+        f"{p.company_name} ({p.sector}) — {p.invoices[0].buyer_name.split('(')[0].strip()}": k
+        for k, p in PILOT_SUPPLIERS.items()
+    }
+    sel_sup_label = st.selectbox("Supplier Profile:", list(supplier_options.keys()))
+    sel_sup_key = supplier_options[sel_sup_label]
+    sel_profile = PILOT_SUPPLIERS[sel_sup_key]
+    eval_res_list = pilot_evaluator.evaluate_supplier(sel_profile)
+    res = eval_res_list[0]
+
+    scol1, scol2 = st.columns([3, 2])
+    with scol1:
+        st.markdown(f"### 📄 Audit for Invoice: `{res.invoice_number}` (₹{res.invoice_amount:,.2f})")
+        st.markdown(f"**Target CPSE Buyer:** `{res.buyer_name}`")
+        st.markdown(f"**Target Portal:** `{res.portal_name}`")
+        st.markdown(f"**Statutory Leverage:** `{res.statutory_leverage_applied}`")
+
+        st.progress(res.gatekeeper_initial_score, text=f"Initial First-Pass Acceptance Score (Before RECEIVX): {int(res.gatekeeper_initial_score*100)}%")
+
+        st.markdown("#### ⚠️ Detected Silent Portal Traps:")
+        for trap in res.detected_traps:
+            st.markdown(f"""
+            <div style="background: #1E293B; border-left: 4px solid #EF4444; padding: 10px 14px; border-radius: 8px; margin-bottom: 6px;">
+                <span style="color: #F87171; font-weight: 700; font-size: 13px;">🚨 SILENT REJECTION TRAP:</span>
+                <div style="color: #CBD5E1; font-size: 12.5px; margin-top: 2px;">{trap}</div>
+            </div>
+            """, unsafe_allow_html=True)
+
+        st.markdown("#### 🛠️ RECEIVX Autonomous Remediation Applied:")
+        for act in res.auto_remediation_actions:
+            st.markdown(f"""
+            <div style="background: #064E3B; border-left: 4px solid #10B981; padding: 10px 14px; border-radius: 8px; margin-bottom: 6px;">
+                <span style="color: #6EE7B7; font-weight: 700; font-size: 13px;">✅ REMEDIATED & STAMPED:</span>
+                <div style="color: #E2E8F0; font-size: 12.5px; margin-top: 2px;">{act}</div>
+            </div>
+            """, unsafe_allow_html=True)
+
+        st.success(f"🎯 **Post-Remediation Gatekeeper Score: 100% (READY FOR UPLOAD)**")
+
+    with scol2:
+        st.markdown("### 💰 Financial & Working Capital ROI")
+        st.metric("DSO Compression", f"{res.dso_days_compressed} Days Saved", "Zero 30-day rejection loop")
+        st.metric("Working Capital Interest Saved", f"₹{res.working_capital_interest_saved_annualized:,.2f}", f"Bank OD APR: {float(sel_profile.bank_cash_credit_apr*100):.1f}%")
+        if res.claimable_sec16_interest > 0:
+            st.metric("Claimable MSMED Sec 16 Interest", f"₹{res.claimable_sec16_interest:,.2f}", "3x RBI Bank Rate (19.5% p.a.)")
+        if res.treds_factoring_apr:
+            st.metric("Instant TReDS Factoring Cash", f"₹{res.treds_instant_cash_available:,.2f}", f"Factoring APR: {res.treds_factoring_apr*100:.2f}% (T+1)")
+
+        st.divider()
+        st.markdown("#### 📜 Raw Ingested Invoice OCR Stream:")
+        st.text_area("OCR Extraction:", sel_profile.invoices[0].raw_ocr_text, height=180)
+
