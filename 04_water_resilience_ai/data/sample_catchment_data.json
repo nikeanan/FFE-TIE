@@ -1,0 +1,21 @@
+{
+  "catchment": {
+    "catchment_id": "NCR_SECTOR_62_URBAN",
+    "area_hectares": 45.0,
+    "imperviousness_percent": 82.0,
+    "slope_percent": 1.2
+  },
+  "storm_events": [
+    { "return_period": 10, "intensity_mm_per_hr": 48.0, "duration_minutes": 60 },
+    { "return_period": 25, "intensity_mm_per_hr": 62.0, "duration_minutes": 60 },
+    { "return_period": 50, "intensity_mm_per_hr": 78.5, "duration_minutes": 60 },
+    { "return_period": 100, "intensity_mm_per_hr": 96.0, "duration_minutes": 60 }
+  ],
+  "trunk_conduit": {
+    "conduit_id": "MAIN_TRUNK_01",
+    "diameter_meters": 1.6,
+    "slope": 0.003,
+    "manning_n": 0.015,
+    "full_capacity_m3s": 3.986
+  }
+}

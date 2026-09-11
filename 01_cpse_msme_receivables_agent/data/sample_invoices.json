@@ -1,0 +1,29 @@
+[
+  {
+    "invoice_number": "INV/2026/045",
+    "po_reference": "PO/NTPC/2026/0891",
+    "buyer": "NTPC Limited",
+    "amount_inr": 531000.00,
+    "invoice_date": "2026-03-01",
+    "days_overdue": 142,
+    "status": "OVERDUE_MSMED_BREACH"
+  },
+  {
+    "invoice_number": "INV/2026/088",
+    "po_reference": "PO/BHEL/2026/1102",
+    "buyer": "BHEL Haridwar",
+    "amount_inr": 1280000.00,
+    "invoice_date": "2026-06-15",
+    "days_overdue": 36,
+    "status": "OVERDUE_MSMED_BREACH"
+  },
+  {
+    "invoice_number": "INV/2026/112",
+    "po_reference": "PO/ONGC/2026/0045",
+    "buyer": "ONGC Mumbai",
+    "amount_inr": 850000.00,
+    "invoice_date": "2026-08-10",
+    "days_overdue": 0,
+    "status": "SUBMITTED_TO_CPSE"
+  }
+]

@@ -1,0 +1,6 @@
+item_no,description,unit,tender_quantity,tender_rate_inr,executed_quantity,deviation_pct,status
+01.1,Earthwork in excavation for foundation in all types of soil,CUM,4500.0,380.0,4650.0,+3.3%,NORMAL
+02.4,Plain Cement Concrete (PCC) 1:4:8 for leveling course,CUM,650.0,4200.0,740.0,+13.8%,VARIATION_WARNING
+03.2,Reinforced Cement Concrete M35 in Piers and Abutments,CUM,2800.0,8500.0,2920.0,+4.3%,NORMAL
+04.1,Bored Cast-in-Situ RC Piles 1200mm Dia in Hard Rock,RMT,1200.0,14500.0,1620.0,+35.0%,CRITICAL_VARIATION_EXCEEDED
+05.3,Supplying and fixing Elastomeric Bridge Bearings,NOS,48.0,32000.0,48.0,0.0%,NORMAL

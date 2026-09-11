@@ -1,0 +1,1 @@
+# RECEIVX Integration Adapters Package
