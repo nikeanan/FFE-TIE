@@ -14,6 +14,8 @@ from src.qc_anomaly_engine import BatchQCAnomalyEngine
 from src.carbon_intelligence import carbon_engine, CarbonProfile
 from src.cure_maturity_engine import maturity_engine, MaturityReading
 from src.qa_certificate_exporter import qa_exporter
+from src.pilot.pilot_plants import PILOT_PLANTS
+from src.pilot.pilot_evaluator import cmi_pilot_evaluator
 
 st.set_page_config(
     page_title="CMI — Construction Material Intelligence",
@@ -105,7 +107,7 @@ with st.sidebar:
 
     st.caption("CMI v3.0 • Civil Engineering & Materials Platform")
 
-# Six Core Tabs
+# Seven Core Tabs
 tabs = st.tabs([
     "🧪 Mix Design & IS Standards",
     "⚠️ Real-Time Batch QC & Anomaly",
@@ -113,6 +115,7 @@ tabs = st.tabs([
     "🌱 Embodied Carbon & SCMs",
     "💰 Plant Economics & Savings",
     "📜 Digital QA Certificate & NCR",
+    "🚀 5-Plant Live Pilot Sandbox",
 ])
 
 # -----------------------------------------------------------------------------
@@ -371,3 +374,115 @@ with tabs[5]:
     with qcol2:
         st.subheader("Live Certificate Preview")
         st.text_area("Certificate Content:", cert_text, height=420)
+
+# -----------------------------------------------------------------------------
+# TAB 7: 5-PLANT LIVE PILOT SANDBOX & PROOF-OF-VALUE
+# -----------------------------------------------------------------------------
+with tabs[6]:
+    st.header("7. 🚀 5-Plant Live Pilot Sandbox & Zero-Rejection Proof-of-Value (PoV)")
+    st.markdown("""
+    Experience CMI across **5 production-grade Ready-Mix & EPC batching plants** simulating challenging real-world Indian infrastructure projects 
+    (Metro Rail, Coastal Expressways, Bullet Train Terminals, Highway Pavements, and Hydroelectric Dams).
+    """)
+
+    pilot_report = cmi_pilot_evaluator.run_all_pilots()
+
+    # Executive Overview KPIs
+    k1, k2, k3, k4 = st.columns(4)
+    with k1:
+        st.markdown(f"""
+        <div class="kpi-card">
+            <div class="kpi-lbl">Plants Audited</div>
+            <div class="kpi-val">{pilot_report.total_plants_audited} Plants</div>
+            <div style="font-size: 12px; color: #38BDF8; margin-top: 4px;">100% IS 456 & 4926 Verified</div>
+        </div>
+        """, unsafe_allow_html=True)
+
+    with k2:
+        st.markdown(f"""
+        <div class="kpi-card">
+            <div class="kpi-lbl">Total Monthly Volume</div>
+            <div class="kpi-val">{pilot_report.total_monthly_volume_m3:,.0f} m³</div>
+            <div style="font-size: 12px; color: #38BDF8; margin-top: 4px;">Across 5 Mega-Projects</div>
+        </div>
+        """, unsafe_allow_html=True)
+
+    with k3:
+        st.markdown(f"""
+        <div class="kpi-card">
+            <div class="kpi-lbl">Monthly Material Savings</div>
+            <div class="kpi-val">₹ {pilot_report.total_monthly_savings_inr:,.0f}</div>
+            <div style="font-size: 12px; color: #4ADE80; margin-top: 4px;">₹ {pilot_report.total_annual_savings_inr/10000000:,.2f} Cr / Year</div>
+        </div>
+        """, unsafe_allow_html=True)
+
+    with k4:
+        st.markdown(f"""
+        <div class="kpi-card">
+            <div class="kpi-lbl">Annual Carbon Offset</div>
+            <div class="kpi-val">{pilot_report.total_annual_co2_tonnes_offset:,.1f} T</div>
+            <div style="font-size: 12px; color: #4ADE80; margin-top: 4px;">Scope 3 CO₂e Reduced</div>
+        </div>
+        """, unsafe_allow_html=True)
+
+    st.markdown("<br>", unsafe_allow_html=True)
+
+    # 5-Plant Comparison Table
+    st.subheader("📊 5-Plant Proof-of-Value Comparative Benchmark")
+    plant_rows = []
+    for r in pilot_report.results:
+        plant_rows.append({
+            "Plant ID": r.plant_id,
+            "Plant & Operator": f"{r.plant_name} ({r.operator_name})",
+            "Project": r.project_name,
+            "Grade": r.target_grade,
+            "Monthly Vol (m³)": f"{r.monthly_volume_m3:,.0f}",
+            "Cement Saved (kg/m³)": f"-{r.cement_saved_kg_m3:.1f} kg",
+            "28d Safety Margin": f"+{r.safety_margin_mpa:.2f} MPa",
+            "Monthly Savings (₹)": f"₹ {r.monthly_gross_savings_inr:,.0f}",
+            "Annual CO₂ Offset (T)": f"{r.annual_co2e_tonnes_offset:,.1f} T",
+            "Green Tier": r.green_rating_tier,
+        })
+    df_plants = pd.DataFrame(plant_rows)
+    st.dataframe(df_plants, use_container_width=True, hide_index=True)
+
+    st.divider()
+
+    # Detailed Plant Drill-Down
+    st.subheader("🔍 Deep-Dive Plant Telemetry & Remediation Audit")
+    selected_p_id = st.selectbox(
+        "Select Pilot Plant to Inspect:",
+        options=list(PILOT_PLANTS.keys()),
+        format_func=lambda pid: f"{PILOT_PLANTS[pid].plant_name} — {PILOT_PLANTS[pid].scenario.project_name} ({PILOT_PLANTS[pid].scenario.target_grade})"
+    )
+
+    sel_profile = PILOT_PLANTS[selected_p_id]
+    sel_res = cmi_pilot_evaluator.evaluate_plant(sel_profile)
+    sel_sc = sel_profile.scenario
+
+    dcol1, dcol2 = st.columns([1, 1])
+    with dcol1:
+        st.markdown(f"### 🏭 {sel_profile.plant_name}")
+        st.markdown(f"**Operator:** `{sel_profile.operator_name}` • **Location:** `{sel_profile.location}`")
+        st.markdown(f"**Mixer Hardware:** `{sel_profile.mixer_hardware}` • **SCADA:** `{sel_profile.scada_system}`")
+        st.markdown(f"**Target Application:** `{sel_sc.project_name}`")
+        st.markdown(f"**Design Grade:** `{sel_sc.target_grade}` ({sel_sc.exposure_condition} Exposure)")
+
+        st.info(f"⚡ **Identified Bottleneck / Root Cause:**\n\n{sel_sc.root_cause_defect}")
+        st.success(f"🛠️ **CMI Algorithmic Remediation:**\n\n{sel_res.cmi_remediation_summary}")
+
+    with dcol2:
+        st.markdown("### 📈 Quality & Economic Impact")
+        
+        m_c1, m_c2 = st.columns(2)
+        with m_c1:
+            st.metric("Baseline Cement", f"{sel_res.baseline_cement_kg_m3:.0f} kg/m³")
+            st.metric("CMI Optimized Cement", f"{sel_res.optimized_cement_kg_m3:.0f} kg/m³", f"-{sel_res.cement_saved_kg_m3:.1f} kg/m³")
+            st.metric("Target f'ck", f"{sel_res.target_28d_strength_mpa:.1f} MPa")
+        with m_c2:
+            st.metric("Monthly Bags Saved", f"{sel_res.monthly_cement_bags_saved:,.0f} Bags")
+            st.metric("Monthly Savings", f"₹ {sel_res.monthly_gross_savings_inr:,.0f}")
+            st.metric("Predicted 28d Strength", f"{sel_res.predicted_28d_strength_mpa:.2f} MPa", f"+{sel_res.safety_margin_mpa:.2f} MPa Margin")
+
+        st.markdown(f"**Green Rating Tier:** `{sel_res.green_rating_tier}` • **Annual CO₂ Offset:** `{sel_res.annual_co2e_tonnes_offset:,.1f} Tonnes`")
+
