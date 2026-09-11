@@ -164,8 +164,7 @@ st.markdown("""
 
 # Sidebar: Supplier & Environment Context
 with st.sidebar:
-    st.image("https://img.icons8.com/isometric/100/null/financial-growth-analysis.png", width=64)
-    st.subheader("MSME Supplier Profile")
+    st.subheader("🏢 MSME Supplier Profile")
     msme = db.get_msme("msme_precision_01")
     if msme:
         st.markdown(f"**{msme.legal_name}**")

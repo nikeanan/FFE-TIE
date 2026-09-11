@@ -127,6 +127,59 @@ For {supplier_name}
 Authorized Signatory
 """
 
+    @classmethod
+    def evaluate_consignment(
+        cls,
+        delivery_date: date,
+        buyer_name: str,
+        contract_number: str,
+        invoice_amount: Decimal,
+    ) -> Any:
+        days_elapsed = (date.today() - delivery_date).days
+        is_deemed = days_elapsed >= cls.STATUTORY_CRAC_WINDOW_DAYS
+        
+        class CracEvalResult:
+            def __init__(self, is_deemed_acc: bool, elapsed: int):
+                self.is_deemed_accepted = is_deemed_acc
+                self.days_elapsed = elapsed
+                self.status = "DEEMED_ACCEPTED_BY_LAW" if is_deemed_acc else "PENDING_CONSIGNEE_VERIFICATION"
+                if is_deemed_acc:
+                    self.statutory_note = (
+                        f"Under GFR Rule 149, {elapsed} days have elapsed since delivery (>10-day statutory window). "
+                        "The consignment is legally deemed accepted. Buyer cannot reject or deduct for past delays."
+                    )
+                else:
+                    days_left = cls.STATUTORY_CRAC_WINDOW_DAYS - elapsed
+                    self.statutory_note = (
+                        f"Consignment is within the {cls.STATUTORY_CRAC_WINDOW_DAYS}-day statutory inspection window. "
+                        f"{days_left} day(s) remaining until automatic deemed acceptance."
+                    )
+        
+        return CracEvalResult(is_deemed, days_elapsed)
+
+    @classmethod
+    def generate_deemed_crac_demand_notice(
+        cls,
+        invoice_number: str,
+        contract_number: str,
+        consignee_dept: str,
+        delivery_date: date,
+        amount: Decimal,
+        supplier_name: str,
+    ) -> str:
+        days_overdue = max(0, (date.today() - (delivery_date + timedelta(days=20))).days)
+        return cls.generate_rule_149_demand_notice(
+            supplier_name=supplier_name,
+            supplier_udyam="UDYAM-TN-33-0098471",
+            buyer_entity=consignee_dept,
+            consignee_designation="Head of Materials & Finance",
+            gem_contract_no=contract_number,
+            invoice_no=invoice_number,
+            invoice_amount=amount,
+            delivery_date=delivery_date,
+            days_overdue=days_overdue,
+        )
+
 
 gem_tracker = GeMCRACTracker()
 gem_crac_engine = gem_tracker
