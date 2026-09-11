@@ -19,6 +19,9 @@ from src.agents.advisor_agent import advisor_agent
 from src.agents.orchestrator import orchestrator
 from src.integrations.whatsapp_adapter import whatsapp
 from src.integrations.samadhaan_adapter import samadhaan
+from src.integrations.pdf_parser import InvoicePDFExtractor
+from src.integrations.gem_crac_tracker import gem_crac_engine
+from src.agents.email_dispute_miner import email_dispute_miner
 
 # Ensure database is seeded
 if not db.invoices:
@@ -183,11 +186,11 @@ with st.sidebar:
 # Seven Core Navigation Tabs
 tabs = st.tabs([
     "🌟 Command Center & Advisor",
-    "🔍 Pre-Submission Gatekeeper",
-    "⏱️ SLA & Acceptance Tracker",
+    "🔍 Pre-Submission Gatekeeper & OCR",
+    "⏱️ SLA & GeM Rule 149 CRAC Tracker",
     "⚖️ Statutory Escalator Desk",
     "💰 TReDS Financing Optimizer",
-    "📈 Buyer Behaviour Graph",
+    "📈 Buyer Moat & Email Dispute NLP",
     "💬 WhatsApp Bot Simulator"
 ])
 
@@ -356,12 +359,32 @@ with tabs[1]:
             </div>
             """, unsafe_allow_html=True)
 
+    st.divider()
+    st.subheader("📄 Raw Invoice OCR / PDF Extraction Sandbox")
+    st.caption("Paste raw invoice text or simulated PDF OCR text to test automatic metadata extraction:")
+    
+    sample_text = """TAX INVOICE
+Invoice No: INV/2026/099
+Invoice Date: 2026-03-01
+Supplier GSTIN: 27AAACP1234A1Z5
+Buyer GSTIN: 07AAACB2026B1Z1
+PO Reference: PO-BHEL-2026-0881
+IRN: 9a8b7c6d5e4f3a2b1c0d9e8f7a6b5c4d3e2f1a0b9c8d7e6f5a4b3c2d1e0f9a8b
+Total Invoice Amount: INR 3,85,000.00
+Taxable Value: INR 3,26,271.18
+CGST 9%: INR 29,364.41 | SGST 9%: INR 29,364.41
+"""
+    raw_inv_input = st.text_area("Raw Invoice Text / OCR Stream:", sample_text, height=140)
+    if st.button("🔎 Extract Structured Invoice Entity"):
+        extracted = InvoicePDFExtractor.extract_from_text(raw_inv_input)
+        st.json(extracted)
+
 # -----------------------------------------------------------------------------
-# TAB 3: SLA & ACCEPTANCE TRACKER (AGENT 2)
+# TAB 3: SLA & GeM RULE 149 CRAC TRACKER (AGENT 2 & GeM ENGINE)
 # -----------------------------------------------------------------------------
 with tabs[2]:
-    st.subheader("⏱️ Agent 2: TRACKER — Acceptance Velocity Engine")
-    st.markdown("**Job:** Compress the buyer's acceptance window — the #1 hidden delay. Implements adaptive cadences and learns from buyer email replies.")
+    st.subheader("⏱️ Agent 2: TRACKER — SLA & GeM Rule 149 Deemed CRAC Engine")
+    st.markdown("**Job:** Compress the buyer's acceptance window. Automatically enforce **GFR Rule 149 Deemed CRAC (10-Day Auto-Acceptance Milestone)** on GeM and trigger adaptive follow-up cadences.")
 
     tcol1, tcol2 = st.columns([3, 2])
     with tcol1:
@@ -383,19 +406,38 @@ with tabs[2]:
         st.dataframe(pd.DataFrame(tracker_rows), use_container_width=True, hide_index=True)
 
         st.divider()
-        st.markdown("#### Manual Trigger: Execute Follow-Up Cadence")
-        inv_to_track = st.selectbox("Select Invoice to inspect cadence:", [i.invoice_number for i in invoices], key="track_sel")
-        matched_inv = [i for i in invoices if i.invoice_number == inv_to_track][0]
-        act_res = tracker_agent.evaluate_invoice(matched_inv.id)
-        
-        st.info(f"**Policy Action:** `{act_res.type.value}` (Pending: {act_res.days_pending} days | T1: {act_res.t1_threshold}d, T2: {act_res.t2_threshold}d, T3: {act_res.t3_threshold}d)")
-        if act_res.message_content:
-            st.text_area("Generated Follow-up Communication:", act_res.message_content, height=180)
-            if st.button("📤 Send Automated Dispatch via " + act_res.channel):
-                st.success(f"Dispatched to {matched_inv.buyer_id} via {act_res.channel}.")
+        st.markdown("#### 🏛️ GeM GFR Rule 149 Deemed Acceptance (CRAC) Auditor")
+        st.caption("Under Government e-Marketplace (GeM) GFR Rule 149, buyers must issue a Consignee Receipt and Acceptance Certificate (CRAC) within 10 days of goods delivery; otherwise, goods are deemed accepted by operation of law.")
+
+        gem_goods_date = st.date_input("Goods Delivery / Consignee Receipt Date", date.today() - timedelta(days=12))
+        gem_buyer_name = st.text_input("GeM Consignee Department / CPSE", "NTPC Dadri Thermal Power Station")
+        gem_po = st.text_input("GeM Contract / Order No", "GEMC-51168772910293")
+        gem_amt = st.number_input("Invoice Value (₹)", value=1250000.0, step=50000.0)
+
+        crac_eval = gem_crac_engine.evaluate_consignment(
+            delivery_date=gem_goods_date,
+            buyer_name=gem_buyer_name,
+            contract_number=gem_po,
+            invoice_amount=Decimal(str(gem_amt))
+        )
+
+        st.markdown(f"**CRAC Status:** `{crac_eval.status}` (Days Elapsed: **{crac_eval.days_elapsed} / 10 days**)")
+        st.info(crac_eval.statutory_note)
+
+        if crac_eval.is_deemed_accepted:
+            st.success("🎯 **Deemed Accepted by Operation of Law!** Generate formal demand notice for immediate bill processing.")
+            notice_text = gem_crac_engine.generate_deemed_crac_demand_notice(
+                invoice_number="INV/2026/GEM-08",
+                contract_number=gem_po,
+                consignee_dept=gem_buyer_name,
+                delivery_date=gem_goods_date,
+                amount=Decimal(str(gem_amt)),
+                supplier_name=msme.legal_name if msme else "Precision Eng Works"
+            )
+            st.text_area("Statutory Deemed CRAC Demand Notice:", notice_text, height=220)
 
     with tcol2:
-        st.markdown("#### 📥 Inbound Buyer Reply / IMAP Parser")
+        st.markdown("#### 📥 Live IMAP / CPSE Officer Reply Sim")
         st.caption("Simulate reading a CPSE accounts officer's email reply. Watch how the system extracts reasons and teaches Agent 1:")
 
         from_email = st.text_input("Buyer Email Sender", "stores.accounts@bhel.in")
@@ -549,6 +591,29 @@ with tabs[5]:
                 <div style="color: #CBD5E1; font-size: 13px; margin-top: 4px;">{r.human_reason}</div>
             </div>
             """, unsafe_allow_html=True)
+
+    st.divider()
+    st.subheader("🧠 Deep Dispute NLP Analyzer & Instant Rebuttal Drafter")
+    st.caption("Paste any CPSE rejection email to automatically extract legal dispute categories and draft an evidence-backed rebuttal:")
+
+    raw_disp_email = st.text_area(
+        "CPSE Rejection / Deduction Email Text:",
+        "Dear Vendor,\nWith reference to Invoice INV/2026/088, we have deducted ₹45,000 for Liquidated Damages (LD) alleging a 14-day delay in delivery beyond the purchase order schedule.",
+        height=100
+    )
+    if st.button("⚡ Analyze Dispute & Draft Formal Rebuttal"):
+        disp_analysis = email_dispute_miner.mine_email_for_dispute(
+            email_text=raw_disp_email,
+            sender="finance.epc@bhel.in",
+            buyer_id=sel_buyer_id,
+            invoice_number="INV/2026/088"
+        )
+        st.markdown(f"**Dispute Type:** `{disp_analysis.dispute_type.value}` | **Confidence:** `{int(disp_analysis.confidence*100)}%`")
+        st.markdown(f"**Disputed Deducted Amount:** `₹{disp_analysis.disputed_amount:,.2f}`")
+        st.markdown(f"**Root Cause:** {disp_analysis.extracted_issue}")
+        
+        st.markdown("#### Generated Rebuttal Notice:")
+        st.text_area("Formal Rebuttal Template:", disp_analysis.rebuttal_draft, height=220)
 
 # -----------------------------------------------------------------------------
 # TAB 7: WHATSAPP BOT SIMULATOR
