@@ -1,0 +1,45 @@
+{
+  "expo": {
+    "name": "RECEIVX \u2014 MSME Receivables Intelligence",
+    "slug": "receivx-msme",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "dark",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#0F172A"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.receivx.msme",
+      "infoPlist": {
+        "NSCameraUsageDescription": "RECEIVX uses camera to scan purchase orders, tax invoices, and GRN receipts for instant 4-way matching.",
+        "NSMicrophoneUsageDescription": "RECEIVX uses microphone to record vernacular voice commands for billing queries and legal escalations."
+      }
+    },
+    "android": {
+      "package": "com.receivx.msme",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#0F172A"
+      },
+      "permissions": [
+        "CAMERA",
+        "RECORD_AUDIO",
+        "INTERNET",
+        "READ_EXTERNAL_STORAGE"
+      ]
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "receivx-cpse-msme-intel"
+      },
+      "apiUrl": "http://localhost:8000"
+    }
+  }
+}
