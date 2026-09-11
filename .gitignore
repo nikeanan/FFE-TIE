@@ -16,7 +16,8 @@ htmlcov/
 .cache/
 
 # Streamlit local state
-.streamlit/
+.streamlit/*
+!.streamlit/config.toml
 
 # OS generated files
 Thumbs.db
