@@ -193,8 +193,8 @@ def seed_database():
         po_number="PO/NTPC/2026/0891",
         buyer_id="cpse_ntpc_dadri",
         msme_id="msme_precision_01",
-        po_date=date(2026, 1, 10),
-        delivery_due_date=date(2026, 2, 15),
+        po_date=date.today() - timedelta(days=30),
+        delivery_due_date=date.today() + timedelta(days=30),
         line_items=[
             LineItemModel(
                 item_code="ITM-FLANGE-150",

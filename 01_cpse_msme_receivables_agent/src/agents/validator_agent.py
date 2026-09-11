@@ -64,7 +64,12 @@ def po_expired(state: ValidationState) -> bool:
     due_date = state.po["delivery_due_date"]
     if isinstance(due_date, str):
         due_date = date.fromisoformat(due_date)
-    return date.today() > due_date
+    inv_date = state.invoice.get("invoice_date") if state.invoice else None
+    if isinstance(inv_date, str):
+        inv_date = date.fromisoformat(inv_date)
+    if not inv_date:
+        inv_date = date.today()
+    return inv_date > due_date
 
 
 def partial_delivery(state: ValidationState) -> bool:
@@ -156,7 +161,7 @@ async def compliance_check(state: ValidationState) -> ValidationState:
     msme = db.get_msme(state.invoice.get("msme_id", ""))
     udyam_present = bool(msme and msme.udyam_number and ("udyam" in state.invoice.get("invoice_number", "").lower() or True))
     # We deliberately flag UDYAM_ON_INVOICE if not explicitly set in invoice header notes
-    udyam_missing_in_header = not state.invoice.get("vendor_code") or state.invoice.get("id") == "inv_ntpc_2041"
+    udyam_missing_in_header = not state.invoice.get("vendor_code")
 
     rules = [
         ("IRN_ABSENT", not irn, "BLOCKER"),
@@ -186,8 +191,7 @@ async def buyer_specific_rules(state: ValidationState) -> ValidationState:
         triggered = False
         if rule.check_type == "GRN_MATCH" and qty_diff(state) > Decimal("0.001"):
             triggered = True
-        elif rule.check_type == "UDYAM_HEADER":
-            # Match learned rule for Udyam header presence
+        elif rule.check_type == "UDYAM_HEADER" and not state.invoice.get("vendor_code"):
             triggered = True
         elif rule.check_type == "VENDOR_CODE_REQUIRED" and not state.invoice.get("vendor_code"):
             triggered = True

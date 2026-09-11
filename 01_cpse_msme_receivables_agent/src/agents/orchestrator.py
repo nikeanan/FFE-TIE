@@ -1,3 +1,4 @@
+from decimal import Decimal
 from typing import Any, Dict, List, Optional
 from ..database.db_session import db
 from ..database.models import InvoiceLifecycleStatus

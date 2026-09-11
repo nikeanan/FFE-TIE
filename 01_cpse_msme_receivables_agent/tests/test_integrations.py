@@ -59,8 +59,8 @@ def test_samadhaan_adapter():
         days_overdue=142,
     )
     assert "STATEMENT OF CLAIM" in petition["petition_text"]
-    assert "Section 18" in petition["petition_text"]
-    assert "Section 43B(h)" in petition["petition_text"]
+    assert "SECTION 18" in petition["petition_text"]
+    assert "SECTION 43B(h)" in petition["petition_text"]
     assert len(petition["exhibits"]) == 5
 
 
